@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Text Sync</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <style>
+        body { font-family: Arial; padding: 40px; }
+        input { padding: 10px; width: 300px; }
+        button { padding: 10px; }
+        #output { margin-top: 20px; font-size: 20px; color: green; }
+    </style>
+</head>
+<body>
+
+<h2>Same URL – Two Laptop Live Sync</h2>
+
+<input id="text" placeholder="Enter text">
+<button onclick="send()">Save</button>
+
+<div id="output"></div>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, () => {
+            stompClient.subscribe('/topic/liveText', msg => {
+                document.getElementById("output").innerText =
+                    "Latest Text: " + msg.body;
+            });
+        });
+    }
+
+    function send() {
+        stompClient.send("/app/send", {},
+            document.getElementById("text").value);
+    }
+
+    connect();
+</script>
+
+</body>
+</html>
